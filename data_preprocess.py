@@ -14,8 +14,8 @@ def data_load():
     breakouts = pd.read_csv("data/RKI/Ausbruchsdaten.csv", sep=';')
 
     #### cases per age
-    cases_age1 = pd.read_csv("data/RKI/Altersverteilung_total.csv", sep=';').drop([0], axis=0)
-    cases_age2 = pd.read_csv("data/RKI/Altersverteilung_incidence.csv", sep=';').drop([0], axis=0)
+    cases_age1 = pd.read_csv("data/RKI/Altersverteilung_total.csv", sep=';')
+    cases_age2 = pd.read_csv("data/RKI/Altersverteilung_incidence.csv", sep=';')
 
     #### deaths
     deaths1 = pd.read_csv("data/RKI/COVID-19_Todesfaelle_all.csv", sep=';')
