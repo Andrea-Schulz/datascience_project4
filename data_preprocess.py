@@ -32,7 +32,7 @@ def data_load():
     return overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, comorb
 
 
-def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, comorb):
+def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, clinical):
     #### general covid case overview (RKI dashboard data)
 
     # rename report and reference date (date of suspected/confirmed infection), calculate delay
@@ -42,9 +42,16 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
     overview.rename(columns={'IstErkrankungsbeginn': 'ref_eq_rep'})
     # create new date columns for weeks and days to compare with other tables
     overview['ref_date_dayofweek'] = pd.DatetimeIndex(overview['ref_date']).dayofweek
+    overview['ref_date_year'] = pd.DatetimeIndex(overview['ref_date']).year
     overview['ref_date_week'] = pd.DatetimeIndex(overview['ref_date']).weekofyear
+    # map week 53 to 2020
+    overview.loc[((overview['ref_date_year'] == 2021) & (overview['ref_date_week'] == 53)), 'ref_date_year'] = 2020
     overview['report_date_dayofweek'] = pd.DatetimeIndex(overview['report_date']).dayofweek
+    overview['report_date_year'] = pd.DatetimeIndex(overview['report_date']).year
     overview['report_date_week'] = pd.DatetimeIndex(overview['report_date']).weekofyear
+    # map week 53 to 2020
+    overview.loc[((overview['report_date_year'] == 2021) & (overview['report_date_week'] == 53)), 'report_date_year'] = 2020
+
     # drop inconclusive/redundant columns
     overview.drop(['Altersgruppe2', 'Datenstand', 'Meldedatum', 'Refdatum', 'ObjectId'], axis=1, inplace=True)
 
@@ -145,10 +152,10 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
     # merge
     tests = pd.merge(tests1, tests2, on='week', how='outer').fillna(0)
 
-    #### comorbidities
+    #### clinical data
 
     # remove incompatible string characters and columns as integers
-    comorb = comorb.rename(columns={'Meldejahr': 'year',
+    clinical = clinical.rename(columns={'Meldejahr': 'year',
                                     'MW': 'week',
                                     'Fälle gesamt': 'cases_tot',
                                     'Mittelwert Alter (Jahre)': 'mean_age',
@@ -159,14 +166,14 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
                                     'Anzahl mit Angaben zur Hospitalisierung': 'hospital_reported',
                                     'Anzahl hospitalisiert': 'hospital_num',
                                     'Anteil hospitalisiert': 'hospital_perc',
-                                    'Anzahl Verstorben': 'deaths_num',
-                                    'Anteil Verstorben': 'deaths_perc'
-                                    }).drop(['Unnamed: 0'], axis=1)
+                                        'Anzahl Verstorben': 'deaths_num',
+                                        'Anteil Verstorben': 'deaths_perc'
+                                        }).drop(['Unnamed: 0'], axis=1)
     # remove incompatible string characters, columns to floats
     for col in ['male_perc', 'female_perc', 'no_symptoms_perc', 'hospital_perc', 'deaths_perc']:
-        comorb[col] = comorb[col].str.replace('%', '').str.replace(',', '.').astype('float')
+        clinical[col] = clinical[col].str.replace(',', '.').astype('float')
 
-    return overview, casting, breakouts, cases_age, deaths, tests, comorb
+    return overview, casting, breakouts, cases_age, deaths, tests, clinical
 
 
 
