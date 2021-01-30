@@ -21,13 +21,14 @@ overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3,
 overview, casting, breakouts, cases_age, deaths, tests, clinical =\
     data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, clinical)
 
-# cases info: nur Falldaten bei labordiagnostischer Bestätigung unabhängig vom klinischen Bild
-# Bei der Darstellung der Neuinfektionen pro Tag wird das Meldedatum verwendet, also das Datum, an dem das GA Kenntnis von dem Fall erlangt und ihn als solchen elektronisch erfasst.
-
-
-
 
 #### data overview ####
+
+# delay in reporting (date of infection vs. date of reporting to authorities):
+# 0 if no delay or unknown, negative values due to reporting delays or errors (or maybe contact persons who fell sick later)?
+report_delay = overview.loc[(overview['report_delay'] >= -30) & (overview['report_delay'] <= 30)]['report_delay']
+
+
 # total cases (all newly reported infections, not active cases) up to now
 total_cases = overview['AnzahlFall'].sum()
 
@@ -61,10 +62,6 @@ age_total = cfunc.remove_column_substr(cases_age1.set_index('Altersgruppe'), '20
 # correlation of normalized incidences between age groups
 age_groups_corr = age_norm.T.corr()
 
-# delay in reporting (date of infection vs. date of reporting to authorities):
-# 0 if no delay or unknown, negative values due to reporting delays or errors (or maybe contact persons who fell sick later)?
-report_delay = overview.loc[(overview['report_delay'] >= -30) & (overview['report_delay'] <= 30)]['report_delay']
-
 
 
 # number of breakouts in different infection settings (breakout = 2 or more related cases)
@@ -90,6 +87,16 @@ breakouts_time_per_setting2['Unknown total'] = breakouts_time_per_setting2['Unkn
 breakouts_time_per_setting_rel2 = (breakouts_time_per_setting2.drop(['Unknown single', 'Unknown'], axis=1)
                                    .div(breakouts_time_per_setting2.drop(['Unknown single', 'Unknown'], axis=1).sum(axis=1), axis=0)).fillna(0)
 
+# correlations
+age_norm_trans = age_norm.rename(columns={'2021_1': '54'}).T
+age_norm_trans.index = age_norm_trans.index.astype('int').rename('week')
+age_vs_breakouts = pd.concat([breakouts_time_per_setting2, age_norm_trans], axis=1)
+age_vs_breakouts_summer = pd.concat([breakouts_time_per_setting2, age_norm_trans], axis=1).loc[18:44, :]
+# correlation age vs breakouts: take upper right side of correlation matrix
+age_vs_breakouts_corr = age_vs_breakouts.corr().loc[:'Work place', '90+':]
+# age_vs_breakouts_corr_summer = age_vs_breakouts_summer.corr().loc[:'Work place', '90+':]
+
+
 # clinical data: cases, symptoms, hospitalisation
 clinical[['no_symptoms_perc', 'hospital_perc', 'deaths_perc']] = clinical[['no_symptoms_perc', 'hospital_perc', 'deaths_perc']]*100
 # rates of clinical status reporting for all known cases
@@ -108,29 +115,12 @@ deaths_cum = clinical['deaths_num'].sum()/clinical['cases_tot'].sum()
 clinical_corrs = clinical[['cases_tot', 'hospital_num', 'deaths_num']].corr()
 
 
-# correlations
-age_norm_trans = age_norm.rename(columns={'2021_1': '54'}).T
-age_norm_trans.index = age_norm_trans.index.astype('int').rename('week')
-age_vs_breakouts = pd.concat([breakouts_time_per_setting2, age_norm_trans], axis=1)
-age_vs_breakouts_summer = pd.concat([breakouts_time_per_setting2, age_norm_trans], axis=1).loc[18:44, :]
-# correlation age vs breakouts: take upper right side of correlation matrix
-age_vs_breakouts_corr = age_vs_breakouts.corr().loc[:'Work place', '90+':]
-# age_vs_breakouts_corr_summer = age_vs_breakouts_summer.corr().loc[:'Work place', '90+':]
-
-fig, ax = pfunc.plot_heatmap(age_vs_breakouts_corr,
-                             title=f'correlations between number of cases per age \nand number of cases allocated to breakout settings',
-                             filename='corr_age_breakouts',
-                             annot=True, fmt='.1f', figsize=(8,6), center=0)
-# fig, ax = pfunc.plot_heatmap(age_vs_breakouts_corr_summer,
-#                              title=f'correlations between number of cases per age \nand number of cases allocated to breakout settings - in summer only',
-#                              filename='corr_age_breakouts',
-#                              annot=True, fmt='.1f', figsize=(8,6), center=0)
-fig, ax = pfunc.plot_heatmap(age_groups_corr,
-                             title=f'correlation of normalized incidences between age groups',
-                             filename='corr_age_groups',
-                             annot=True, fmt='.1f', figsize=(8,6), center=0)
-
 #### plots ####
+# heatmap: cases per age group over time (total)
+fig, ax = pfunc.plot_heatmap(age_total,
+                             title='total cases per age group over time',
+                             filename='cases_total_per_age',
+                             annot=True, fmt='d')
 # heatmap: cases per age group over time (incidence)
 fig, ax = pfunc.plot_heatmap(age_incidence,
                              title='case incidence (cases/100.000 people) per age group over time',
@@ -143,11 +133,11 @@ fig, ax = pfunc.plot_heatmap_and_line(age_norm.drop(['Gesamt'], axis=0),
                                       filename='incidence_age_relative',
                                       title2='total case incidence over time',
                                       annot=True, fmt='.1f')
-# heatmap: cases per age group over time (total)
-fig, ax = pfunc.plot_heatmap(age_total,
-                             title='total cases per age group over time',
-                             filename='cases_total_per_age',
-                             annot=True, fmt='d')
+
+fig, ax = pfunc.plot_heatmap(age_groups_corr,
+                             title=f'correlation of normalized incidences between age groups',
+                             filename='corr_age_groups',
+                             annot=True, fmt='.1f', figsize=(8,6), center=0)
 
 # breakouts (total vs. shares)
 fig, ax = pfunc.plot_line(breakouts_time_per_setting,
@@ -166,6 +156,16 @@ fig, ax = pfunc.plot_bar(unknown_cases[['weekly_sum_breakouts', 'weekly_single_u
 fig, ax = pfunc.plot_bar((breakouts_time_per_setting_rel2.reindex(sorted(breakouts_time_per_setting_rel2.columns), axis=1).loc[:53,:])*100,
                           title=f'infection settings relative to total number of cases in percent [%]',
                           filename='shares_breakouts_total', stacked=True)
+
+fig, ax = pfunc.plot_heatmap(age_vs_breakouts_corr,
+                             title=f'correlations between relative case incidence in age groups \nand number of cases allocated to breakout settings',
+                             filename='corr_age_breakouts',
+                             annot=True, fmt='.1f', figsize=(8,6), center=0)
+# fig, ax = pfunc.plot_heatmap(age_vs_breakouts_corr_summer,,
+#                              title=f'correlations between number of cases per age \nand number of cases allocated to breakout settings - in summer only',
+#                              filename='corr_age_breakouts',
+#                              annot=True, fmt='.1f', figsize=(8,6), center=0)
+
 
 # heatmap: weekly cases per week per federal state in 2020
 fig, ax = pfunc.plot_heatmap(weekly_cases_per_state,

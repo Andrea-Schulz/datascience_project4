@@ -138,12 +138,12 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
     tests1 = tests1.rename(columns={'KW, für die die Angabe prognostisch erfolgt ist:': 'week',
                                     'Anzahl übermittelnde Labore': 'laboratories',
                                     'Testkapazität pro Tag': 'daily_cap',
-                                    'Theoretische wöchentliche Kapazität anhand von Wochenarbeitstagen': 'daily_cap_est',
-                                    'Reale Testkapazität zum Zeitpunkt der Abfrage': 'daily_cap_real'})
+                                    'Theoretische wöchentliche Kapazität anhand von Wochenarbeitstagen': 'weekly_cap_est',
+                                    'Reale Testkapazität zum Zeitpunkt der Abfrage': 'weekly_cap_real'})
     # remove incompatible string characters and get week, test capacities as integers
     tests1['week'] = tests1['week'].str.split('KW').str[1].astype('int')
-    tests1['daily_cap_est'] = tests1['daily_cap_est'].replace('-', 0).astype('int')
-    tests1['daily_cap_real'] = tests1['daily_cap_real'].replace('-', 0).astype('int')
+    tests1['weekly_cap_est'] = tests1['weekly_cap_est'].replace('-', 0).astype('int')
+    tests1['weekly_cap_real'] = tests1['weekly_cap_real'].replace('-', 0).astype('int')
     # drop faulty columns and rename
     tests2 = tests2.drop(['Unnamed: 3'], axis=1) \
         .rename(columns={'Labore mit Rückstau': 'laboratories_tailback',
@@ -151,6 +151,9 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
                          'Probenrückstau': 'tests_tailback'})
     # merge
     tests = pd.merge(tests1, tests2, on='week', how='outer').fillna(0)
+    # alias weeks for 2021 with higher numbers
+    tests['week'].iloc[43] = 54
+    tests['week'].iloc[44] = 55
 
     #### clinical data
 
