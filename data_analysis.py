@@ -10,8 +10,9 @@ import custom_functions as cfunc
 import plot_functions as pfunc
 
 #### customize plot settings and parameters
-pfunc.init_plot_settings()
-color1, color2, color3 = pfunc.color_cycles()
+
+default, color1, color2, color3 = pfunc.color_cycles()
+pfunc.init_plot_settings(color=default)
 
 #### load, view and preprocess data ####
 # load

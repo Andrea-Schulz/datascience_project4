@@ -56,6 +56,19 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
     '''
     #### general covid case overview (RKI dashboard data)
 
+    # overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, clinical =\
+    #     overview.copy(deep=True), \
+    #     casting.copy(deep=True), \
+    #     breakouts.copy(deep=True), \
+    #     cases_age1.copy(deep=True), \
+    #     cases_age2.copy(deep=True), \
+    #     deaths1.copy(deep=True), \
+    #     deaths2.copy(deep=True), \
+    #     deaths3.copy(deep=True), \
+    #     tests1.copy(deep=True), \
+    #     tests2.copy(deep=True), \
+    #     clinical.copy(deep=True)
+
     # rename report and reference date (date of suspected/confirmed infection), calculate delay
     overview['report_date'] = pd.to_datetime(overview['Meldedatum'], format='%Y/%m/%d %H:%M:%S').dt.date
     overview['ref_date'] = pd.to_datetime(overview['Refdatum'], format='%Y/%m/%d %H:%M:%S').dt.date
@@ -173,8 +186,7 @@ def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, de
     # merge
     tests = pd.merge(tests1, tests2, on='week', how='outer').fillna(0)
     # alias weeks for 2021 with higher numbers
-    tests['week'].iloc[43] = 54
-    tests['week'].iloc[44] = 55
+    tests['week'] = tests['week'].replace(1, 54).replace(2, 55)
 
     #### clinical data
 
