@@ -1,8 +1,15 @@
+# This module contains functions for loading and preprocessing the given
+# CSV tables with Coronavirus data for general analysis
+
 import pandas as pd
 import math
 import functools as func
 
 def data_load():
+    '''
+    loads data as dataframe from different csv sources in the "data" directory
+    :return: pandas dataframes of the raw extracted data
+    '''
 
     #### general covid case overview (RKI dashboard data)
     overview = pd.read_csv("data/RKI/RKI_COVID19.csv")
@@ -31,8 +38,22 @@ def data_load():
 
     return overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, comorb
 
-
 def data_clean(overview, casting, breakouts, cases_age1, cases_age2, deaths1, deaths2, deaths3, tests1, tests2, clinical):
+    '''
+    takes pandas dataframes of the raw extracted data and preprocesses, cleans and partly merges them
+    :param overview: daily new cases and deaths over time in all federal states (per general age group and sex)
+    :param casting: NowCasting Dashboard data
+    :param breakouts: breakouts (= 2 or more cases) that were traced and attributed to an infection setting
+    :param cases_age1: weekly number of new cases per age group in 5-year intervalls
+    :param cases_age2: weekly incidences per age group in 5-year intervalls
+    :param deaths1: weekly number of deaths
+    :param deaths2: weekly number of deaths per age group
+    :param deaths3: weekly number of deaths per age group and sex
+    :param tests1: testing capacities
+    :param tests2: testing tailbacks
+    :param clinical: reported clinical indications (hospitalization, symptom prevalence) and deaths per sex
+    :return: cleaned pandas dataframes
+    '''
     #### general covid case overview (RKI dashboard data)
 
     # rename report and reference date (date of suspected/confirmed infection), calculate delay
