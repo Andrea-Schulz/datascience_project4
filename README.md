@@ -50,8 +50,8 @@ To complete the project, the following publicly available data was used:
 
 The global pandemic was, and still is, an overwhelming experience to which we had to adapt to in many ways. Analyzing such a novel disease poses some major challenges to making any estimations.
 * systematic reporting and collection of data was implemented over the course of the pandemic. The documentation of breakouts, test rates and other information put into question the reliability and completeness of (some of) the given given data.
-* the limited amount of data is further distorted by alternating phases with either low case numbers and specific breakouts or exponentially growing infections with diffuse occurence of infections.
-* unprecedented political and economic measures taken to prevent a spread of infections, making many assumptions or estimations hard to validate.
+* the limited amount of data is further distorted by alternating phases with low case numbers and specific breakouts on the one hand and exponentially growing infections in diffuse locations on the other.
+* unprecedented political and economic measures taken to prevent a spread of infections make many assumptions or estimations hard to validate.
 * given the novelty of the disease, there are a lot of uncertainties in general, including the prevalence of symptoms, mechanisms of transmission, death rates etc.
 
 Due to this, I will not give away numbers without context here, and spare you the detailed discussion. You'll find the full analysis and discussion in this [blog post](https://andrea-s-schulz.medium.com/covid-19-beyond-the-dashboards-d3b503e7c360).
